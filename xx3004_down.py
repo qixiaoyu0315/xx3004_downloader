@@ -39,7 +39,6 @@ def getMenuList(soup):
     pagesUrl = soup.find_all(name='a',attrs={'class': 'thumbnail'})
 
     lists = []
-
     for i in pagesUrl:
         lists.append(i.get('href'))
 
@@ -47,6 +46,7 @@ def getMenuList(soup):
 
 #获取写真的所有页面的url
 def getPageList(soup):
+
     pages = soup.find_all(name='a',attrs={'class': 'post-page-numbers'})
 
     num = int(len(pages) / 2 - 1)
@@ -67,10 +67,8 @@ def getImgList(soup):
     imgs.pop(0)
 
     lists = []
-
     for i in imgs:
         lists.append(i.get('src'))
-    
     return lists
 
 #获取写真的 初始标题 得到 姓名 标题
@@ -82,20 +80,21 @@ def getTittle(soup,url):
     
     p = r'(?=《).*(?<=》)'
     s = re.search(p,tO)
-
     t = s.group()
 
-    name = soup.find_all(name='span',attrs={'class': 'dis'})
-
-    n = name[0].string
-
-    na = re.compile('==>(.*?)（').findall(n)
-
-    if len(na) == 0:
-        na = re.compile('==>(.*?)，').findall(n)
-
-    nax = na[0]
-
+    name = soup.find_all(name='a',attrs={'rel': 'tag'})
+    nax = ''
+    if len(name) > 2:
+        for i in name[1:]:
+            folder = os.path.exists("./"+i.string)
+            if folder:
+                nax = i.string
+                break
+        if nax == '':
+            for i in name[1:]:
+                nax = nax + "XX" + i.string
+    else:
+        nax = name[1].string
     read = soup.find_all('p')
     
     listsRead = []
@@ -103,8 +102,8 @@ def getTittle(soup,url):
         txt = readx.string
         if txt != None:
             listsRead.append(readx.string)
+    
     lists = [tO,t,nax,listsRead]
-
     return lists
 
 #创建文件夹
@@ -214,9 +213,6 @@ url = 'https://www.xx3004.cc/meinv'
 #得到soup
 newSoup = getHtmlSoup(url,headers)
 # 获取总页数
-# lastPage = newSoup.find_all('span')
-# lastPageStr = lastPage[-24]
-# s = lastPageStr.strip(" ")
 
 #设置是否 追加更新
 if update:
@@ -280,7 +276,6 @@ with Progress() as progress:
 
     num = 0
     while not progress.finished:
-    # for urlNow in urlLists:
 
         #开始循环任务 下载写真
         urlNow = next(urlListsIter)
@@ -296,6 +291,7 @@ with Progress() as progress:
             config = remkdir(listsT[0],listsT[1],listsT[2])
 
         path = "./"+ listsT[2] + "/" + listsT[1]
+        mkdir(path)
         pathRead = path + "/" + "read.txt"
         writeTXT(pathRead,listsT[3],'w')
 
@@ -307,15 +303,7 @@ with Progress() as progress:
             urlExistLists.append(urlNow)
             writeTXT("urlExist.txt",urlExistLists,'w')
 
-            continue
-        #判断姓名是否存在 以姓名创建文件夹
-        # folder_name = os.path.exists(listsT[2])
-        # if not folder_name:
-        #     path_name = "./"+ listsT[2]
-        #     mkdir(path_name)
-
-              
-        mkdir(path)
+            continue   
 
         #先获取第一页的所有图片的 url 以及其余页数的url
         listsImg = getImgList(soupNow)
@@ -352,9 +340,6 @@ with Progress() as progress:
         # for url in listsImg:
                 
         print("下载"+ str(numx- 1 - xxx) +"张图")
-            #若出现 图片无法下载 
-            #则 打印到 改文件夹下的No.txt中
-            #No.txt 保存为下载的 图片编号 及 图片URL
 
         #完成一个写真的下载 则需要 
         #修改url.txt 和 urlExsit.txt 值
@@ -368,10 +353,8 @@ with Progress() as progress:
         #判断是否已经完成所有任务
         num = num + 1
         if num > taskNumber:      
-            break
-        
+            break     
         progress.update(task2, advance=1)
-#结束
 
 print("********************byb.********************")
 #####################################################

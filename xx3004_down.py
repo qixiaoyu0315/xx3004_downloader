@@ -35,7 +35,7 @@ def getAllUrl(numbers):
 
 #获取所有写真的url
 def getMenuList(soup):
-
+    
     pagesUrl = soup.find_all(name='a',attrs={'class': 'thumbnail'})
 
     lists = []
@@ -50,11 +50,11 @@ def getPageList(soup):
     pages = soup.find_all(name='a',attrs={'class': 'post-page-numbers'})
 
     num = int(len(pages) / 2 - 1)
-
+    
     lists = []
     for x in pages[0:num]:
         lists.append(x.get('href'))
-
+    
     return lists
 
 #获取写真的图片地址的url
@@ -70,7 +70,7 @@ def getImgList(soup):
 
     for i in imgs:
         lists.append(i.get('src'))
-
+    
     return lists
 
 #获取写真的 初始标题 得到 姓名 标题
@@ -79,7 +79,7 @@ def getTittle(soup,url):
     tO = tittle[0].string
     tO.strip()
     tO = tO[1::]
-
+    
     p = r'(?=《).*(?<=》)'
     s = re.search(p,tO)
 
@@ -95,20 +95,20 @@ def getTittle(soup,url):
         na = re.compile('==>(.*?)，').findall(n)
 
     nax = na[0]
-
+    
     lists = [tO,t,nax]
 
     return lists
 
 #创建文件夹
 def mkdir(path):
-
+ 
 	folder = os.path.exists(path)
-
+ 
 	if not folder:                   #判断是否存在文件夹如果不存在则创建为文件夹
 		os.makedirs(path)            #makedirs 创建文件时如果路径不存在会创建这个路径
 		print("---  新建---" + path +"---文件夹  ---")
-
+ 
 	else:
 		print("---  存在---" + path +"---文件夹  ---")
 
@@ -125,7 +125,7 @@ def move_file(old_path, new_path):
 def remkdir(old_tittle,new_tittle,name):
 
     #判断是否存在 老tittle 路径
-    #如果存在
+    #如果存在 
     folder_tittle = os.path.exists(old_tittle)
     if folder_tittle:
         os.rename(old_tittle,new_tittle)
@@ -150,7 +150,7 @@ def readTXT(nameTxt):
             line = line.strip('\n')  #去掉列表中每一个元素的换行符
             listsUrlExist.append(line)
     return listsUrlExist
-
+    
 #写入txt
 def writeTXT(nameTxt,nameList,post):
     with open(nameTxt, post) as f:
@@ -186,20 +186,13 @@ def do_work(url,numx,maxL,xxx,filex,headers):
                 break
             continue
     lists = [numx,maxL,xxx]
-    return lists
-
-
-#获取最新的所有url
-# def getPageAllUrl(soup):
-#     pasoup.find_all(name='a',attrs={'class': 'thumbnail'})
-
-
+    return lists    
 
 ##################################################
 print("*****************开始*********************")
 #设置是否需要联网更新
 #默认 False
-update = Ture
+update = True
 #一次下载写真数
 taskNumber = 30
 
@@ -232,7 +225,7 @@ if update:
     #所有页面的写真Url
     allUrlLists = []
     for lastPageNumber in track(range(lastPageNumber), description="Processing..."):
-        pageUrl = next(allPageUrlListsIter)
+        pageUrl = next(allPageUrlListsIter) 
         pageUrlSoup = getHtmlSoup(pageUrl,headers)
         allUrlLists = allUrlLists + getMenuList(pageUrlSoup)
 
@@ -290,7 +283,7 @@ with Progress() as progress:
         listsT = getTittle(soupNow,urlNow)
         #判断是否 采用老版本 如果是 则重命名 并移动到对应的 姓名目录下
         folder_old = os.path.exists(listsT[0])
-
+        
         config = False;
         if folder_old:
             config = remkdir(listsT[0],listsT[1],listsT[2])
@@ -298,7 +291,7 @@ with Progress() as progress:
         if config:
             urlListsCopy.remove(urlNow)
             writeTXT("url.txt",urlListsCopy,'w')
-
+        
             urlExistLists.append(urlNow)
             writeTXT("urlExist.txt",urlExistLists,'w')
 
@@ -309,13 +302,13 @@ with Progress() as progress:
         #     path_name = "./"+ listsT[2]
         #     mkdir(path_name)
 
-        path = "./"+ listsT[2] + "/" + listsT[1]
+        path = "./"+ listsT[2] + "/" + listsT[1]      
         mkdir(path)
 
         #先获取第一页的所有图片的 url 以及其余页数的url
         listsImg = getImgList(soupNow)
 
-        listsPage = getPageList(soupNow)
+        listsPage = getPageList(soupNow)        
 
         #通过获取其余页数的url 获得各页图片的url
         for x in listsPage:
@@ -328,7 +321,7 @@ with Progress() as progress:
         xxx = 0
 
         print("需要下载 "+ str(len(listsImg)) +" 张图片")
-
+        
         it = iter(listsImg)
         nm = len(listsImg)
 
@@ -338,33 +331,33 @@ with Progress() as progress:
             url = next(it)
 
             listsDo = do_work(url,numx,maxL,xxx,path,headers)
-
+            
             numx = listsDo[0]
             maxL = listsDo[1]
             xxx = listsDo[2]
             progress.update(task1, advance=1)
 
         # for url in listsImg:
-
+                
         print("下载"+ str(numx- 1 - xxx) +"张图")
-            #若出现 图片无法下载
+            #若出现 图片无法下载 
             #则 打印到 改文件夹下的No.txt中
             #No.txt 保存为下载的 图片编号 及 图片URL
 
-        #完成一个写真的下载 则需要
+        #完成一个写真的下载 则需要 
         #修改url.txt 和 urlExsit.txt 值
         urlListsCopy.remove(urlNow)
         writeTXT("url.txt",urlListsCopy,'w')
-
+      
         urlExistLists.append(urlNow)
         writeTXT("urlExist.txt",urlExistLists,'w')
 
         #控制遍历写真数
         #判断是否已经完成所有任务
         num = num + 1
-        if num > taskNumber:
+        if num > taskNumber:      
             break
-
+        
         progress.update(task2, advance=1)
 #结束
 

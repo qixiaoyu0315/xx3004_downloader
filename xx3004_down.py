@@ -16,7 +16,7 @@ def getHtmlSoup(url,headers):
             htmlDoc = requests.get(url,headers = headers)
             break
         except:
-            print("**********将在0.3秒钟后重试...*********")
+            print("************将在0.3秒钟后重试...**********")
             time.sleep(0.3)
             continue
     soup = BeautifulSoup(htmlDoc.content,'lxml')
@@ -95,8 +95,15 @@ def getTittle(soup,url):
         na = re.compile('==>(.*?)，').findall(n)
 
     nax = na[0]
+
+    read = soup.find_all('p')
     
-    lists = [tO,t,nax]
+    listsRead = []
+    for readx in read:
+        txt = readx.string
+        if txt != None:
+            listsRead.append(readx.string)
+    lists = [tO,t,nax,listsRead]
 
     return lists
 
@@ -192,7 +199,7 @@ def do_work(url,numx,maxL,xxx,filex,headers):
 print("*****************开始*********************")
 #设置是否需要联网更新
 #默认 False
-update = True
+update = False
 #一次下载写真数
 taskNumber = 30
 
@@ -287,6 +294,11 @@ with Progress() as progress:
         config = False;
         if folder_old:
             config = remkdir(listsT[0],listsT[1],listsT[2])
+
+        path = "./"+ listsT[2] + "/" + listsT[1]
+        pathRead = path + "/" + "read.txt"
+        writeTXT(pathRead,listsT[3],'w')
+
         #如果 config True 执行 则 直接下一个写真
         if config:
             urlListsCopy.remove(urlNow)
@@ -302,7 +314,7 @@ with Progress() as progress:
         #     path_name = "./"+ listsT[2]
         #     mkdir(path_name)
 
-        path = "./"+ listsT[2] + "/" + listsT[1]      
+              
         mkdir(path)
 
         #先获取第一页的所有图片的 url 以及其余页数的url
